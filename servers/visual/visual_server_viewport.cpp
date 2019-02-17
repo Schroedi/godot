@@ -272,9 +272,10 @@ void VisualServerViewport::draw_viewports() {
 		if (!visible)
 			continue;
 
-		VSG::storage->render_target_clear_used(vp->render_target);
+		
 
 		if (vp->use_arvr && arvr_interface.is_valid()) {
+            
 			// override our size, make sure it matches our required size
 			Size2 size = arvr_interface->get_render_targetsize();
 			VSG::storage->render_target_set_size(vp->render_target, size.x, size.y);
@@ -283,15 +284,25 @@ void VisualServerViewport::draw_viewports() {
 			ARVRInterface::Eyes leftOrMono = arvr_interface->is_stereo() ? ARVRInterface::EYE_LEFT : ARVRInterface::EYE_MONO;
 			VSG::rasterizer->set_current_render_target(vp->render_target);
 			_draw_viewport(vp, leftOrMono);
-			arvr_interface->commit_for_eye(leftOrMono, vp->render_target, vp->viewport_to_screen_rect);
+			//arvr_interface->commit_for_eye(leftOrMono, vp->render_target, vp->viewport_to_screen_rect);
 
 			// render right eye
 			if (leftOrMono == ARVRInterface::EYE_LEFT) {
-				// commit for eye may have changed the render target
-				VSG::rasterizer->set_current_render_target(vp->render_target);
+                // target for right eye
+                VSG::storage->render_target_clear_used(vp->render_target);
+                auto rid = VSG::storage->render_target_create();
+                VSG::storage->render_target_set_size(rid, size.x, size.y);
+                // commit for eye may have changed the render target
+				//VSG::rasterizer->set_current_render_target(vp->render_target);
+                VSG::rasterizer->set_current_render_target(rid);
 
 				_draw_viewport(vp, ARVRInterface::EYE_RIGHT);
-				arvr_interface->commit_for_eye(ARVRInterface::EYE_RIGHT, vp->render_target, vp->viewport_to_screen_rect);
+				//arvr_interface->commit_for_eye(ARVRInterface::EYE_RIGHT, vp->render_target, vp->viewport_to_screen_rect);
+
+                // unset our render target so we are outputting to our main screen by making RasterizerStorageGLES3::system_fbo our current FBO
+                VSG::rasterizer->set_current_render_target(RID());
+                VSG::rasterizer->blit_render_target_to_screen_rc(vp->render_target, rid, vp->viewport_to_screen_rect, 0);
+                VSG::storage->free(rid);
 			}
 
 			// and for our frame timing, mark when we've finished committing our eyes
@@ -337,6 +348,7 @@ RID VisualServerViewport::viewport_create() {
 	viewport->hide_scenario = false;
 	viewport->hide_canvas = false;
 	viewport->render_target = VSG::storage->render_target_create();
+    viewport->render_target2 = VSG::storage->render_target_create();
 	viewport->shadow_atlas = VSG::scene_render->shadow_atlas_create();
 
 	return rid;
@@ -358,6 +370,7 @@ void VisualServerViewport::viewport_set_size(RID p_viewport, int p_width, int p_
 
 	viewport->size = Size2(p_width, p_height);
 	VSG::storage->render_target_set_size(viewport->render_target, p_width, p_height);
+    VSG::storage->render_target_set_size(viewport->render_target2, p_width, p_height);
 }
 
 void VisualServerViewport::viewport_set_active(RID p_viewport, bool p_active) {
@@ -419,6 +432,7 @@ void VisualServerViewport::viewport_set_vflip(RID p_viewport, bool p_enable) {
 	ERR_FAIL_COND(!viewport);
 
 	VSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_VFLIP, p_enable);
+    VSG::storage->render_target_set_flag(viewport->render_target2, RasterizerStorage::RENDER_TARGET_VFLIP, p_enable);
 }
 
 RID VisualServerViewport::viewport_get_texture(RID p_viewport) const {

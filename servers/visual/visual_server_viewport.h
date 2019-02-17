@@ -54,6 +54,7 @@ public:
 
 		VS::ViewportUpdateMode update_mode;
 		RID render_target;
+        RID render_target2;
 		RID render_target_texture;
 
 		int viewport_to_screen;

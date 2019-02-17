@@ -1890,6 +1890,21 @@ void RasterizerCanvasGLES3::draw_generic_textured_rect(const Rect2 &p_rect, cons
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void RasterizerCanvasGLES3::draw_red_cyan_rect(const Rect2 &p_rect, const Rect2 &p_src) {
+
+	// setup our shader
+	state.rc_shader.bind();
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, state.canvas_item_ubo);
+	glBindVertexArray(data.canvas_quad_array);
+
+	// and draw
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	glBindVertexArray(0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, 0);
+}
+
 void RasterizerCanvasGLES3::draw_lens_distortion_rect(const Rect2 &p_rect, float p_k1, float p_k2, const Vector2 &p_eye_center, float p_oversample) {
 	Vector2 half_size;
 	if (storage->frame.current_rt) {
@@ -2115,6 +2130,7 @@ void RasterizerCanvasGLES3::initialize() {
 	state.canvas_shader.set_base_material_tex_index(2);
 	state.canvas_shadow_shader.init();
 	state.lens_shader.init();
+    state.rc_shader.init();
 
 	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_RGBA_SHADOWS, storage->config.use_rgba_2d_shadows);
 	state.canvas_shadow_shader.set_conditional(CanvasShadowShaderGLES3::USE_RGBA_SHADOWS, storage->config.use_rgba_2d_shadows);

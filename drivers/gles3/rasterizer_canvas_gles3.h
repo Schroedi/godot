@@ -36,6 +36,7 @@
 
 #include "shaders/canvas_shadow.glsl.gen.h"
 #include "shaders/lens_distorted.glsl.gen.h"
+#include "shaders/red_cyan.glsl.gen.h"
 
 class RasterizerSceneGLES3;
 
@@ -74,6 +75,8 @@ public:
 		CanvasShaderGLES3 canvas_shader;
 		CanvasShadowShaderGLES3 canvas_shadow_shader;
 		LensDistortedShaderGLES3 lens_shader;
+        RedCyanShaderGLES3 rc_shader;
+
 
 		bool using_texture_rect;
 		bool using_ninepatch;
@@ -143,6 +146,7 @@ public:
 	virtual void reset_canvas();
 
 	void draw_generic_textured_rect(const Rect2 &p_rect, const Rect2 &p_src);
+    void draw_red_cyan_rect(const Rect2 &p_rect, const Rect2 &p_src);
 	void draw_lens_distortion_rect(const Rect2 &p_rect, float p_k1, float p_k2, const Vector2 &p_eye_center, float p_oversample);
 
 	void initialize();

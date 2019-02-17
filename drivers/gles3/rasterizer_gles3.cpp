@@ -329,6 +329,46 @@ void RasterizerGLES3::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 	end_frame(true);
 }
 
+ void RasterizerGLES3::blit_render_target_to_screen_rc(RID p_render_target1, RID p_render_target2, const Rect2 &p_screen_rect, int p_screen) {
+
+	ERR_FAIL_COND(storage->frame.current_rt);
+
+	RasterizerStorageGLES3::RenderTarget *rt1 = storage->render_target_owner.getornull(p_render_target1);
+	ERR_FAIL_COND(!rt1);
+    RasterizerStorageGLES3::RenderTarget *rt2 = storage->render_target_owner.getornull(p_render_target2);
+	ERR_FAIL_COND(!rt2);
+
+    glDisable(GL_BLEND);
+
+	// render to our framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES3::system_fbo);
+
+	// output our texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, rt1->color);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, rt2->color);
+
+    canvas->draw_red_cyan_rect(p_screen_rect, Rect2(0, 0, 1, -1));
+	//canvas->draw_lens_distortion_rect(p_screen_rect, p_k1, p_k2, p_eye_center, p_oversample);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// canvas->canvas_begin();
+	// glDisable(GL_BLEND);
+	// glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES3::system_fbo);
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_2D, rt1->color);
+	// glActiveTexture(GL_TEXTURE1);
+	// glBindTexture(GL_TEXTURE_2D, rt2->color);
+
+    // canvas->draw_red_cyan_rect(p_screen_rect, Rect2(0, 0, 1, -1));
+
+    // //canvas->draw_generic_textured_rect(p_screen_rect, Rect2(0, 0, 1, -1));
+	// glBindTexture(GL_TEXTURE_2D, 0);
+	// canvas->canvas_end();
+}
+
 void RasterizerGLES3::blit_render_target_to_screen(RID p_render_target, const Rect2 &p_screen_rect, int p_screen) {
 
 	ERR_FAIL_COND(storage->frame.current_rt);
