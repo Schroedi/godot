@@ -1069,8 +1069,15 @@ void OS_JavaScript::run_async() {
 }
 
 void OS_JavaScript::main_loop_callback() {
-
+    int old_frames_drawn = Engine::get_singleton()->get_frames_drawn();
 	get_singleton()->main_loop_iterate();
+	if (Engine::get_singleton()->get_frames_drawn() > old_frames_drawn) {
+        emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
+        //printf("high fps");
+    } else {
+        emscripten_set_main_loop_timing(EM_TIMING_RAF, 3);
+        //printf("low fps");
+    }
 }
 
 bool OS_JavaScript::main_loop_iterate() {
